@@ -1,6 +1,6 @@
 AWS Server-less data pipelines with Terraform - Part 1
 ====================================
-Code supporting Blog post "AWS Server-less data pipelines with Terraform - Part 1".
+Code supporting Blog post series [AWS Server-less data pipelines with Terraform](https://datacenternotes.com/2018/09/01/aws-server-less-data-pipelines-with-terraform-part-1/).
 
 
 # Setup
