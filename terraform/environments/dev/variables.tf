@@ -14,6 +14,7 @@ variable "environment" {
 
 variable "project" {
   description = "Specify to which project this resource belongs"
+  default = "serverless"
 }
 
 variable "s3_bucket_name" {
@@ -39,7 +40,7 @@ variable "redshift_loader_lambda_role_name" {
 
 variable "redshift_loader_main_lambda_file" {
   description = "Name of the main lambda .py file"
-  default     = "lambda"
+  default     = "main"
 }
 
 variable "redshift_loader_lambda_unique_function_name" {

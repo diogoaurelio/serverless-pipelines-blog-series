@@ -49,4 +49,4 @@ make apply
 
 # Authors/Contributors
 
-See the list of [contributors](https://github.com/diogoaurelio//graphs/contributors) who participated in this project.
+See the list of [contributors](https://github.com/diogoaurelio/serverless-pipelines-blog-series/graphs/contributors) who participated in this project.

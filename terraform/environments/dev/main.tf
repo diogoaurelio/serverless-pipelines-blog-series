@@ -128,7 +128,6 @@ module "redshift_loader_lambda" {
   version = "v0.0.1"
 
   aws_region     = "${var.aws_region}"
-  aws_account_id = "${data.aws_caller_identity.current.account_id}"
   environment    = "${var.environment}"
   project        = "${var.project}"
 
@@ -136,7 +135,6 @@ module "redshift_loader_lambda" {
   runtime                     = "${var.redshift_loader_lambda_runtime}"
   handler                     = "${var.redshift_loader_lambda_handler}"
   lambda_iam_role_name        = "${var.redshift_loader_lambda_role_name}"
-  logs_kms_key_arn            = ""
 
   main_lambda_file  = "${var.redshift_loader_main_lambda_file}"
   lambda_source_dir = "${local.redshift_loader_lambda_dir}/src"
@@ -182,6 +180,48 @@ resource "aws_security_group" "this" {
 
 
 ################################################################################
+# Lambda KMS key used to encrypt Redshift secrets
+################################################################################
+
+resource "aws_kms_key" "redshift_secrets_key" {
+  description             = "Used to encrypt secrets related to redshift cluster"
+  is_enabled              = true
+  key_usage               = "ENCRYPT_DECRYPT"
+  deletion_window_in_days = "30"
+
+  tags {
+    Environment = "${var.environment}"
+    Project     = "${var.project}"
+    Name        = "redshift-secrets-key"
+  }
+}
+
+resource "aws_kms_alias" "redshift_secrets_key_alias" {
+  name          = "alias/${var.environment}-${var.project}-redshift-secrets-key"
+  target_key_id = "${aws_kms_key.redshift_secrets_key.arn}"
+}
+
+
+################################################################################
+# AWS SSM secret for Redshift user password
+################################################################################
+
+resource "aws_ssm_parameter" "redshift_lambda_db_password" {
+  name        = "${var.environment}-${var.project}-redshift-lambda-password"
+  description = "${var.environment} redshift lambda user password"
+  type        = "SecureString"
+  value       = "${var.redshift_data_loader_lambda_db_password}"
+  key_id      = "${aws_kms_key.redshift_secrets_key.arn}"
+
+  tags {
+    Environment = "${var.environment}"
+    Project     = "${var.project}"
+    Name        = "redshift-lambda-password"
+  }
+}
+
+
+################################################################################
 # AWS trigger to invoke Lambda function on new S3 object
 ################################################################################
 
@@ -204,46 +244,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   }
 
   depends_on = ["aws_lambda_permission.from_bucket"]
-}
-
-################################################################################
-# Lambda KMS key used to encrypt Redshift secrets
-################################################################################
-
-resource "aws_kms_key" "redshift_secrets_key" {
-  description             = "Used to encrypt secrets related to redshift cluster"
-  is_enabled              = true
-  key_usage               = "ENCRYPT_DECRYPT"
-  deletion_window_in_days = "30"
-
-  tags {
-    Environment = "${var.environment}"
-    Project     = "${var.project}"
-    Name        = "redshift-secrets-key"
-  }
-}
-
-################################################################################
-# AWS SSM secret for Redshift user password
-################################################################################
-
-resource "aws_kms_alias" "redshift_secrets_key_alias" {
-  name          = "alias/${var.environment}-${var.project}-redshift-secrets-key"
-  target_key_id = "${aws_kms_key.redshift_secrets_key.arn}"
-}
-
-resource "aws_ssm_parameter" "redshift_lambda_db_password" {
-  name        = "${var.environment}-${var.project}-redshift-lambda-password"
-  description = "${var.environment} redshift lambda user password"
-  type        = "SecureString"
-  value       = "${var.redshift_data_loader_lambda_db_password}"
-  key_id      = "${aws_kms_key.redshift_secrets_key.arn}"
-
-  tags {
-    Environment = "${var.environment}"
-    Project     = "${var.project}"
-    Name        = "redshift-lambda-password"
-  }
 }
 
 
