@@ -243,11 +243,5 @@ secrets/*
 .idea
 README_back.md
 
-identity_kit_env
-redshift_env
-
-/etl/lambda/identity_kit/src/*
-/etl/lambda/redshift/src/*
-/etl/lambda/we_park/src/*
-/etl/lambda/dmp/src/*
-!lambda.py
+/etl/lambdas/redshift/src/*
+!main.py
